@@ -77,12 +77,77 @@ const str = s =>
 
     return updateParserError(
       parserState,
-      `Tried to match "${s}", but got "${targetString.slice(
+      `str: Tried to match "${s}", but got "${targetString.slice(
         index,
         index + 10
       )}"`
     );
   });
+
+const letters = new Parser(parserState => {
+  const { targetString, index, isError } = parserState;
+
+  if (isError) {
+    return parserState;
+  }
+
+  const slicedTarget = targetString.slice(index);
+
+  if (slicedTarget.length === 0) {
+    return updateParserError(
+      parserState,
+      `letters: Got Unexpected end of input.`
+    );
+  }
+
+  const lettersRegex = /^[A-Za-z]+/;
+  const regexMatch = slicedTarget.match(lettersRegex);
+
+  if (regexMatch) {
+    return updateParserState(
+      parserState,
+      index + regexMatch[0].length,
+      regexMatch[0]
+    );
+  }
+
+  return updateParserError(
+    parserState,
+    `letters: Couldn't match letters at index ${index}`
+  );
+});
+
+const digits = new Parser(parserState => {
+  const { targetString, index, isError } = parserState;
+
+  if (isError) {
+    return parserState;
+  }
+
+  const slicedTarget = targetString.slice(index);
+
+  if (slicedTarget.length === 0) {
+    return updateParserError(
+      parserState,
+      `digits: Got Unexpected end of input.`
+    );
+  }
+  const digitsRegex = /^[0-9]+/;
+  const regexMatch = slicedTarget.match(digitsRegex);
+
+  if (regexMatch) {
+    return updateParserState(
+      parserState,
+      index + regexMatch[0].length,
+      regexMatch[0]
+    );
+  }
+
+  return updateParserError(
+    parserState,
+    `digits: Couldn't match digits at index ${index}`
+  );
+});
 
 const sequenceOf = parsers =>
   new Parser(parserState => {
@@ -101,6 +166,6 @@ const sequenceOf = parsers =>
     return updateParserResult(nextState, results);
   });
 
-const p = sequenceOf([str('hello there!'), str('goodbye there!')]);
+const p = letters;
 
-console.log(p.run('hello there!goodbye there!'));
+console.log(p.run('77'));
