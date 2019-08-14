@@ -36,7 +36,24 @@ class Parser {
   map(fn) {
     return new Parser(parserState => {
       const nextState = this.parserStateTransformerFn(parserState);
+      // don't modify anything if there's an error
+      if (nextState.error) return nextState;
+
       return updateParserResult(nextState, fn(nextState.result));
+    });
+  }
+
+  // applies structure to error results
+  errorMap(fn) {
+    return new Parser(parserState => {
+      const nextState = this.parserStateTransformerFn(parserState);
+      // don't modify anything if there's an error
+      if (!nextState.error) return nextState;
+
+      return updateParserResult(
+        nextState,
+        fn(nextState.result, nextState.index)
+      );
     });
   }
 }
@@ -46,8 +63,8 @@ const str = s =>
   new Parser(parserState => {
     const { targetString, index, isError } = parserState;
     if (isError) return parserState;
-    // success!
 
+    // success!
     const slicedTarget = targetString.slice(index);
     if (slicedTarget.length === 0)
       return updateParserState(
