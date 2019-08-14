@@ -43,6 +43,20 @@ class Parser {
     });
   }
 
+  // chain - allows us to write contextual parser
+  // can choose how we parse the next piece of data based on what we just parsed
+  chain(fn) {
+    return new Parser(parserState => {
+      const nextState = this.parserStateTransformerFn(parserState);
+
+      if (nextState.isError) return nextState;
+
+      const nextParser = fn(nextState.result);
+
+      return nextParser.parserStateTransformerFn(nextState);
+    });
+  }
+
   // applies structure to error results
   errorMap(fn) {
     return new Parser(parserState => {
@@ -233,6 +247,40 @@ const many1 = parser =>
     return updateParserResult(nextState, results);
   });
 
-const parser = many(choice([digits, letters]));
+const between = (leftParser, rightParser) => contentParser =>
+  sequenceOf([leftParser, contentParser, rightParser]).map(
+    results => results[1]
+  );
 
-console.log(parser.run('4356dskjds'));
+const betweenBrackets = between(str('('), str(')'));
+
+const stringParser = letters.map(result => ({
+  type: 'string',
+  value: result,
+}));
+
+const numberParser = digits.map(result => ({
+  type: 'number',
+  value: Number(result),
+}));
+
+const dicerollParser = sequenceOf([digits, str('d'), digits]).map(
+  ([n, _, s]) => ({
+    type: 'diceroll',
+    value: [Number(n), Number(s)],
+  })
+);
+
+const parser = sequenceOf([letters, str(':')])
+  .map(results => results[0])
+  .chain(type => {
+    if (type === 'string') {
+      return stringParser;
+    }
+    if (type === 'number') {
+      return numberParser;
+    }
+    return dicerollParser;
+  });
+
+console.log(parser.run('diceroll:2d8'));
