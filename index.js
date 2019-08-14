@@ -29,6 +29,16 @@ class Parser {
     };
     return this.parserStateTransformerFn(intialState);
   }
+
+  // get the new state
+  // pass the new state and new result with the function being called on nextState.result
+  // parser that can parse with any normal methodology but transforms it
+  map(fn) {
+    return new Parser(parserState => {
+      const nextState = this.parserStateTransformerFn(parserState);
+      return updateParserResult(nextState, fn(nextState.result));
+    });
+  }
 }
 
 // parser = parserState in  => parserState out
