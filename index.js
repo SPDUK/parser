@@ -196,9 +196,7 @@ const choice = parsers =>
 
 const many = parser =>
   new Parser(parserState => {
-    if (parserState.isError) {
-      return parserState;
-    }
+    if (parserState.isError) return parserState;
 
     let nextState = parserState;
     const results = [];
@@ -274,12 +272,10 @@ const dicerollParser = sequenceOf([digits, str('d'), digits]).map(
 const parser = sequenceOf([letters, str(':')])
   .map(results => results[0])
   .chain(type => {
-    if (type === 'string') {
-      return stringParser;
-    }
-    if (type === 'number') {
-      return numberParser;
-    }
+    if (type === 'string') return stringParser;
+
+    if (type === 'number') return numberParser;
+
     return dicerollParser;
   });
 
