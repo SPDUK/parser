@@ -245,38 +245,94 @@ const many1 = parser =>
     return updateParserResult(nextState, results);
   });
 
+// captures values that are seperated by some other parser
+// captures a value and enforces that another value must be between those values
+// eg an array [1]
+const sepBy = seperatorParser => valueParser =>
+  new Parser(parserState => {
+    const results = [];
+
+    // keep track of next state
+    let nextState = parserState;
+    // iterate until  break
+    while (true) {
+      // vapture first value
+      const thingWeWantState = valueParser.parserStateTransformerFn(nextState);
+
+      if (thingWeWantState.isError) break;
+
+      results.push(thingWeWantState.result);
+      nextState = thingWeWantState;
+
+      // capture seperators
+      const seperatorState = seperatorParser.parserStateTransformerFn(
+        nextState
+      );
+      if (seperatorState.isError) break;
+
+      nextState = seperatorState;
+    }
+
+    return updateParserResult(nextState, results);
+  });
+
+const sepBy1 = seperatorParser => valueParser =>
+  new Parser(parserState => {
+    const results = [];
+
+    // keep track of next state
+    let nextState = parserState;
+    // iterate until  break
+    while (true) {
+      // vapture first value
+      const thingWeWantState = valueParser.parserStateTransformerFn(nextState);
+
+      if (thingWeWantState.isError) break;
+
+      results.push(thingWeWantState.result);
+      nextState = thingWeWantState;
+
+      // capture seperators
+      const seperatorState = seperatorParser.parserStateTransformerFn(
+        nextState
+      );
+      if (seperatorState.isError) break;
+
+      nextState = seperatorState;
+    }
+
+    if (results.length === 0)
+      return updateParserError(
+        parserState,
+        `sepBy1: unable to capture any results at index ${parserState.index}`
+      );
+    return updateParserResult(nextState, results);
+  });
+
 const between = (leftParser, rightParser) => contentParser =>
   sequenceOf([leftParser, contentParser, rightParser]).map(
     results => results[1]
   );
 
-const betweenBrackets = between(str('('), str(')'));
-
-const stringParser = letters.map(result => ({
-  type: 'string',
-  value: result,
-}));
-
-const numberParser = digits.map(result => ({
-  type: 'number',
-  value: Number(result),
-}));
-
-const dicerollParser = sequenceOf([digits, str('d'), digits]).map(
-  ([n, _, s]) => ({
-    type: 'diceroll',
-    value: [Number(n), Number(s)],
-  })
-);
-
-const parser = sequenceOf([letters, str(':')])
-  .map(results => results[0])
-  .chain(type => {
-    if (type === 'string') return stringParser;
-
-    if (type === 'number') return numberParser;
-
-    return dicerollParser;
+// parserThunk is a thunk that returns a parser
+// workaround the eagerness of JS
+const lazy = parserThunk =>
+  new Parser(parserState => {
+    const parser = parserThunk();
+    return parser.parserStateTransformerFn(parserState);
   });
 
-console.log(parser.run('diceroll:2d8'));
+// because js is eager we need to turn values into lazy values
+const betweenSquareBrackets = between(str('['), str(']'));
+const commaSeperated = sepBy(str(','));
+
+// string that represents an array
+// contains values that are either a number or array
+const exampleString = '[1,2,[3],4,5]';
+// use a thunk to lazily run the code
+// because we have access to the scope the function was created in - we can lazily reference a variable
+const value = lazy(() => choice([digits, arrayParser]));
+
+const arrayParser = betweenSquareBrackets(commaSeperated(value));
+
+console.log(arrayParser.run(exampleString));
