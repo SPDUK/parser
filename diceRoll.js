@@ -1,4 +1,4 @@
-// import parser functions
+const { letters, digits, sequenceOf, str } = require('./index');
 
 const stringParser = letters.map(result => ({
   type: 'string',
