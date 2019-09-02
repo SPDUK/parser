@@ -346,6 +346,7 @@ module.exports = {
   many1,
   sepBy,
   sepBy1,
+  sequenceOf,
   between,
   lazy,
 };

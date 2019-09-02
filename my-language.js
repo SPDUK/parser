@@ -1,5 +1,8 @@
 const { digits, str, choice, sequenceOf, between, lazy } = require('./index');
 
+// create an AST (abstract syntax tree) using the parsers created in index.js
+// interpret the AST to run the input program
+
 // apply structure to a number
 const numberParser = digits.map(x => ({
   type: 'number',
@@ -29,3 +32,27 @@ const operationParser = betweenBrackets(
     b: results[4],
   },
 }));
+
+// takes node of the tree
+// look at the type of the node to see what we should do
+const evaluate = ({ type, value }) => {
+  if (type === 'number') return value;
+
+  if (type === 'operation') {
+    if (value.op === '+') return evaluate(value.a) + evaluate(value.b);
+    if (value.op === '-') return evaluate(value.a) - evaluate(value.b);
+    if (value.op === '/') return evaluate(value.a) / evaluate(value.b);
+    if (value.op === '*') return evaluate(value.a) * evaluate(value.b);
+  }
+};
+
+const interpreter = program => {
+  const parseResult = expr.run(program);
+  if (parseResult.isError) throw new Error('Invalid Program');
+
+  return evaluate(parseResult.result);
+};
+
+const input = '(+ (* 10 2) (- (/ 50 3) 2))';
+
+console.log(interpreter(input)); // 34.666
