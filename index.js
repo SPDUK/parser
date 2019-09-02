@@ -322,21 +322,6 @@ const lazy = parserThunk =>
     return parser.parserStateTransformerFn(parserState);
   });
 
-// // because js is eager we need to turn values into lazy values
-// const betweenSquareBrackets = between(str('['), str(']'));
-// const commaSeperated = sepBy(str(','));
-
-// // string that represents an array
-// // contains values that are either a number or array
-// const exampleString = '[1,2,[3],4,5]';
-// // use a thunk to lazily run the code
-// // because we have access to the scope the function was created in - we can lazily reference a variable
-// const value = lazy(() => choice([digits, arrayParser]));
-
-// const arrayParser = betweenSquareBrackets(commaSeperated(value));
-
-// console.log(arrayParser.run(exampleString));
-
 module.exports = {
   str,
   letters,
