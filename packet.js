@@ -28,14 +28,14 @@ const {
   updateParserState,
   sequenceOf,
 } = require('./index');
-// simple parser to b
+
 const Bit = new Parser(parserState => {
   if (parserState.error) return parserState;
   // grab bit at index, return it inside state and update index
   // parse binary data structure with arraybuffer
 
   // lowest level we can work with data in node is using bytes, can't work directly with bits
-  // extract byte -> extract bit from byte  (round down to nearest byte)
+  // extract byte -> extract bit from byte  (round down to nearest byte if float)
   const byteOffset = Math.floor(parserState.index / 8);
 
   // check byteLength using dataView, if we can't find a byte throw an error
