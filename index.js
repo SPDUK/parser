@@ -173,6 +173,8 @@ const sequenceOf = parsers =>
       results.push(nextState.result);
     }
 
+    if (nextState.isError) return nextState;
+
     return updateParserResult(nextState, results);
   });
 
@@ -278,6 +280,8 @@ const sepBy = seperatorParser => valueParser =>
 
 const sepBy1 = seperatorParser => valueParser =>
   new Parser(parserState => {
+    if (parserState.isError) return parserState;
+
     const results = [];
 
     // keep track of next state
@@ -334,4 +338,8 @@ module.exports = {
   sequenceOf,
   between,
   lazy,
+  Parser,
+  updateParserState,
+  updateParserError,
+  updateParserResult,
 };
